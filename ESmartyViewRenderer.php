@@ -36,7 +36,7 @@ class ESmartyViewRenderer extends CApplicationComponent implements IViewRenderer
 	public $pluginsDir;
 
 	/**
-	 * @var string path alias of the directory where the Smarty.class.php file can be found.
+	 * @pluvar string path alias of the directory where the Smarty.class.php file can be found.
 	 * Also plugins and sysplugins directory should be there.
 	 */
 	public $smartyDir = 'application.vendor.Smarty';
@@ -267,6 +267,28 @@ class ESmartyViewRenderer extends CApplicationComponent implements IViewRenderer
 
 		/** @var Smarty_Internal_Template $template */
 		$template = $this->getSmarty()->createTemplate($sourceFile, null, null, $data, true);
+
+		// render or return
+		if($return)
+			return $template->fetch();
+		else
+			$template->display();
+	}
+
+
+	public function renderString($context,$sourceFile,$data,$return=true)
+	{
+		// current controller properties will be accessible as {$this->property}
+		$data['this'] = $context;
+		// Yii::app()->... is available as {Yii->...} (deprecated, use {Yii::app()->...} instead, Smarty3 supports this.)
+		$data['Yii'] = Yii::app();
+		// time and memory information
+		$data['TIME'] = sprintf('%0.5f',Yii::getLogger()->getExecutionTime());
+		$data['MEMORY'] = round(Yii::getLogger()->getMemoryUsage()/(1024*1024),2).' MB';
+
+		/** @var Smarty_Internal_Template $template */
+
+		$template = $this->getSmarty()->createTemplate("string:$sourceFile", null, null, $data, true);
 
 		// render or return
 		if($return)
